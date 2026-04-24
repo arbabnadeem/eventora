@@ -3,6 +3,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth");
+const eventRoutes = require("./routes/events");
+const bookingRoutes = require("./routes/booking");
 dotenv.config();
 
 const app = express();
@@ -10,8 +12,9 @@ app.use(cors());
 app.use(express.json());
 
 //routes
-
 app.use("/api/auth", authRoutes);
+app.use("/api/event", eventRoutes);
+app.use("/api/booking", bookingRoutes);
 
 // db connection
 mongoose
