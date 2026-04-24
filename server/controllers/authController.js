@@ -57,7 +57,7 @@ const registerUser = async (req, res) => {
     console.log(error.message);
     return res.status(400).json({
       success: false,
-      message: "internal server error!!",
+      message: "internal server error!! in register api",
     });
   }
 };
@@ -67,6 +67,7 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // finding user
     const user = await userModel.findOne({ email });
     if (!user) {
       return res.status(400).json({
@@ -75,6 +76,7 @@ const loginUser = async (req, res) => {
       });
     }
 
+    // matching the password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.json({
@@ -83,6 +85,7 @@ const loginUser = async (req, res) => {
       });
     }
 
+    // generating a new otp if user is not verify
     if (!user.isVerified && user.role === "user") {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       await otpModel.deleteMany({ email, action: "account_verification" });
@@ -99,7 +102,53 @@ const loginUser = async (req, res) => {
       user,
       token: generateToken(user._id, user.role),
     });
-  } catch (error) {}
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).json({
+      success: false,
+      message: "internal server error!! in login api",
+    });
+  }
 };
 
-module.exports = { registerUser };
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // finding otp in db with validation
+    const otpRecord = await otpModel.findOne({
+      email,
+      otp,
+      action: "account_verification",
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({
+        success: false,
+        message: "invalid or expired otp",
+      });
+    }
+
+    // updating the user is verified
+    const user = await userModel.findByIdAndUpdate(
+      { email },
+      { isVerified: true },
+    );
+    await otpModel.deleteMany({ email, action: "account_verification" }); // delete all otp
+
+    return res.status(200).json({
+      success: true,
+      user,
+      message: "user is verified by otp",
+      token: generateToken(user._id, user.role),
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).json({
+      success: false,
+      message: "internal server error!! in login api",
+    });
+  }
+};
+
+module.exports = { registerUser, loginUser, verifyOtp };
