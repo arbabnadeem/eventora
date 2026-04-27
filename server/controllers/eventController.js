@@ -34,7 +34,7 @@ const getAllEvents = async (req, res) => {
 // get event by id
 const getEventById = async (req, res) => {
   try {
-    const { eventId } = req.params.id;
+    const { eventId } = req.params;
     const event = await eventModel.findById(eventId);
     if (!event) {
       return res.status(400).json({
@@ -104,7 +104,54 @@ const createEvent = async (req, res) => {
 };
 
 // update event
-const updateEvent = async (req, res) => {};
+const updateEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const {
+      title,
+      description,
+      date,
+      location,
+      category,
+      totalSeats,
+      ticketPrice,
+      imageUrl,
+    } = req.body;
+
+    const event = await eventModel.findByIdAndUpdate(
+      eventId,
+      {
+        title,
+        description,
+        date,
+        location,
+        category,
+        totalSeats,
+        ticketPrice,
+        imageUrl,
+      },
+      { new: true },
+    );
+    if (!event) {
+      return res.status(400).json({
+        success: false,
+        message: "event not found!",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      event,
+      message: "event updated successfully!!",
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).json({
+      success: false,
+      message: "internal server error!! in update events api",
+    });
+  }
+};
 
 // delete event
 const deleteEvent = async (req, res) => {};
