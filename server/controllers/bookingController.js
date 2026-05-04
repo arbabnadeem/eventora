@@ -110,6 +110,7 @@ const confirmBooking = async (req, res) => {
   try {
     const { paymentStatus } = req.body;
 
+    // validation for payment status
     if (!["paid", "non_paid"].includes(paymentStatus)) {
       return res.status(400).json({
         success: false,
@@ -117,6 +118,7 @@ const confirmBooking = async (req, res) => {
       });
     }
 
+    // searching for booking with id
     const booking = await bookingModel
       .findById(req.params.id)
       .populate("eventId");
@@ -127,6 +129,7 @@ const confirmBooking = async (req, res) => {
       });
     }
 
+    // if it is already confirmed then return for here
     if (booking.status === "confirmed") {
       return res.status(400).json({
         success: false,
@@ -134,6 +137,7 @@ const confirmBooking = async (req, res) => {
       });
     }
 
+    // finding event with event id
     const event = await eventModel.findById(booking.eventId._id);
     if (event.availableSeats <= 0) {
       return res.status(400).json({
@@ -142,16 +146,18 @@ const confirmBooking = async (req, res) => {
       });
     }
 
+    // updating the booking status
     booking.status = "confirmed";
     if (paymentStatus) {
       booking.paymentStatus = paymentStatus;
     }
-
     await booking.save();
 
+    // updating the available seat
     event.availableSeats -= 1;
     await event.save();
 
+    // sending confirmation email
     await sendBookingEmail(req.user.email, event.title, booking._id);
 
     return res.status(200).json({
@@ -169,10 +175,84 @@ const confirmBooking = async (req, res) => {
 };
 
 // get your booked event
-const getMyBooking = async (req, res) => {};
+const getMyBooking = async (req, res) => {
+  try {
+    const { user } = req.user;
+
+    const booking = await bookingModel
+      .find({ userId: user._id })
+      .populate("eventId");
+
+    return res.status(200).json({
+      success: false,
+      booking,
+      message: "booking get successfully!!",
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).json({
+      success: false,
+      message: "internal server error!! in get my booking api",
+    });
+  }
+};
 
 // you can cancel your booking
-const cancelBooking = async (req, res) => {};
+const cancelBooking = async (req, res) => {
+  try {
+    // finding booking bt id
+    const booking = await bookingModel.findById(req.params.id);
+    if (!booking) {
+      return res.status(400).json({
+        success: false,
+        message: "booking not found",
+      });
+    }
+
+    // checking if the booking userid is same as req.user.id
+    if (booking.userId.toString() !== req.user._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "unauthorized",
+      });
+    }
+
+    // checking booking is already cancelled or not
+    if (booking.status === "cancelled") {
+      return res.status(400).json({
+        success: false,
+        message: "your booking is already cancelled",
+      });
+    }
+
+    // boolean property for booking status
+    const wasCancelled = booking.status === "confirmed";
+
+    // updating the booking status
+    booking.status = "cancelled";
+    await booking.save();
+
+    // updating the event available seats
+    if (wasCancelled) {
+      const event = await eventModel.findById(booking.eventId);
+      if (event) {
+        event.availableSeats += 1;
+        await event.save();
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "booking cancelled successfully!!",
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).json({
+      success: false,
+      message: "internal server error!! in cancel booking api",
+    });
+  }
+};
 
 module.exports = {
   bookEvent,
