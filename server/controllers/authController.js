@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const { sendOtpEmail } = require("../utils/email");
 const jwt = require("jsonwebtoken");
 
-const generateToken = async (id, role) => {
+const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "5d" });
 };
 
@@ -130,23 +130,27 @@ const verifyOtp = async (req, res) => {
     }
 
     // updating the user is verified
-    const user = await userModel.findByIdAndUpdate(
+    const user = await userModel.findOneAndUpdate(
       { email },
       { isVerified: true },
     );
     await otpModel.deleteMany({ email, action: "account_verification" }); // delete all otp
 
+    console.log("user:", user);
+    console.log("token:", generateToken(user._id, user.role));
+    const token = generateToken(user._id, user.role);
+
     return res.status(200).json({
       success: true,
       user,
       message: "user is verified by otp",
-      token: generateToken(user._id, user.role),
+      token: token,
     });
   } catch (error) {
     console.log(error.message);
     return res.status(400).json({
       success: false,
-      message: "internal server error!! in login api",
+      message: "internal server error!! in verify otp api",
     });
   }
 };

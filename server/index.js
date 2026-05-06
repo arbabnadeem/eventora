@@ -13,8 +13,8 @@ app.use(express.json());
 
 //routes
 app.use("/api/auth", authRoutes);
-app.use("/api/event", eventRoutes);
-app.use("/api/booking", bookingRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 // db connection
 mongoose

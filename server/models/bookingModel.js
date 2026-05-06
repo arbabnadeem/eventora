@@ -9,7 +9,7 @@ const bookingSchema = new mongoose.Schema(
     },
     eventId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Event",
+      ref: "Events",
       required: true,
     },
     status: {
@@ -19,8 +19,8 @@ const bookingSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ["non_paid", "paid"],
-      default: "non_paid",
+      enum: ["not_paid", "paid"],
+      default: "not_paid",
     },
     amount: {
       type: Number,

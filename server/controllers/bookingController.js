@@ -9,9 +9,9 @@ const generateOtp = () =>
 // send conformation otp to confirm your booking
 const sendBookingOtp = async (req, res) => {
   try {
-    const { user } = req.user;
+    const user = req.user;
     const otp = generateOtp();
-    await otpModel.findByIdAndDelete({
+    await otpModel.findOneAndDelete({
       email: user.email,
       action: "event_booking",
     });
@@ -78,15 +78,15 @@ const bookEvent = async (req, res) => {
 
     // creating booking
     const booking = await bookingModel.create({
-      userId: req.user.id,
+      userId: req.user._id,
       eventId,
       status: "pending",
-      paymentStatus: "non_paid",
+      paymentStatus: "not_paid",
       amount: event.ticketPrice,
     });
 
     // deleting otp after verifying
-    await bookingModel.deleteMany({
+    await otpModel.deleteMany({
       email: req.user.email,
       action: "event_booking",
     });
@@ -111,7 +111,7 @@ const confirmBooking = async (req, res) => {
     const { paymentStatus } = req.body;
 
     // validation for payment status
-    if (!["paid", "non_paid"].includes(paymentStatus)) {
+    if (!["paid", "not_paid"].includes(paymentStatus)) {
       return res.status(400).json({
         success: false,
         message: "invalid payment status!!",
@@ -158,7 +158,7 @@ const confirmBooking = async (req, res) => {
     await event.save();
 
     // sending confirmation email
-    await sendBookingEmail(req.user.email, event.title, booking._id);
+    await sendBookingEmail(booking.userId.email, event.title, booking._id);
 
     return res.status(200).json({
       success: true,
@@ -177,14 +177,14 @@ const confirmBooking = async (req, res) => {
 // get your booked event
 const getMyBooking = async (req, res) => {
   try {
-    const { user } = req.user;
+    const user = req.user;
 
     const booking = await bookingModel
       .find({ userId: user._id })
       .populate("eventId");
 
     return res.status(200).json({
-      success: false,
+      success: true,
       booking,
       message: "booking get successfully!!",
     });

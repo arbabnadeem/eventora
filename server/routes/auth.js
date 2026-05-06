@@ -8,6 +8,6 @@ const {
 
 routes.post("/register", registerUser);
 routes.post("/login", loginUser);
-routes.post("/verifyOtp", verifyOtp);
+routes.post("/verify-otp", verifyOtp);
 
 module.exports = routes;

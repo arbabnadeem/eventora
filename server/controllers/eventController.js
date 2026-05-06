@@ -1,4 +1,5 @@
 const eventModel = require("../models/eventModel");
+const userModel = require("../models/userModel");
 
 // get all events
 const getAllEvents = async (req, res) => {
@@ -34,22 +35,20 @@ const getAllEvents = async (req, res) => {
 // get event by id
 const getEventById = async (req, res) => {
   try {
-    const { eventId } = req.params;
-    const event = await eventModel.findById(eventId);
+    const event = await eventModel.findById(req.params.id);
     if (!event) {
       return res.status(400).json({
         success: false,
         message: "event not found",
       });
     }
-
     return res.status(200).json({
       success: true,
       event,
       message: "event found by id!!",
     });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     return res.status(400).json({
       success: false,
       message: "internal server error!! in get events by id api",
@@ -68,7 +67,7 @@ const createEvent = async (req, res) => {
       category,
       totalSeats,
       ticketPrice,
-      imageUrl,
+      image,
     } = req.body;
 
     if (!title || !description || !date) {
@@ -86,7 +85,9 @@ const createEvent = async (req, res) => {
       category,
       totalSeats,
       ticketPrice,
-      imageUrl,
+      availableSeats: totalSeats,
+      image,
+      createdBy: req.user._id,
     });
 
     return res.status(200).json({

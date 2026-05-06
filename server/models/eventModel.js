@@ -34,7 +34,7 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    imageUrl: {
+    image: {
       type: String,
     },
     createdBy: {
@@ -46,4 +46,4 @@ const eventSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model("events", eventSchema);
+module.exports = mongoose.model("Events", eventSchema);
