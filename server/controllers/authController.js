@@ -54,7 +54,7 @@ const registerUser = async (req, res) => {
       email: user.email,
     });
   } catch (error) {
-    console.log(error.message);
+    console.log("FULL ERROR:", error);
     return res.status(400).json({
       success: false,
       message: "internal server error!! in register api",

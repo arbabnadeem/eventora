@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
       });
-      setUser(data);
+      setUser(data.user);
 
       return data;
     } catch (error) {
@@ -50,9 +50,9 @@ export const AuthProvider = ({ children }) => {
         email,
         otp,
       });
-      setUser(data);
+      setUser(data.user);
 
-      localStorage.setItem("user", JSON.stringify(data));
+      localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
       return data;
     } catch (error) {
