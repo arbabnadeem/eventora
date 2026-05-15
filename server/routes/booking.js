@@ -7,6 +7,7 @@ const {
   getMyBooking,
   confirmBooking,
   cancelBooking,
+  getAllBookings,
 } = require("../controllers/bookingController");
 
 // book your event route
@@ -17,6 +18,9 @@ routes.post("/send-otp", protect, sendBookingOtp);
 
 // get your booked event
 routes.get("/my", protect, getMyBooking);
+
+// admin get all bookings
+routes.get("/all", protect, admin, getAllBookings);
 
 // admin confirm your booking
 routes.put("/:id/confirm", protect, admin, confirmBooking);

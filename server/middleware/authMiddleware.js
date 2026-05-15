@@ -44,6 +44,8 @@ const protect = async (req, res, next) => {
     }
 
     const decode = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("decoded token:", decode);
+    console.log("found user:", req.user); // 👈 add this
 
     req.user = await userModel.findById(decode.id).select("-password");
 

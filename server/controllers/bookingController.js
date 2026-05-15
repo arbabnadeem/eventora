@@ -1,5 +1,6 @@
 const bookingModel = require("../models/bookingModel");
 const otpModel = require("../models/otpModel");
+const userModel = require("../models/userModel"); // add this line at the top
 const eventModel = require("../models/eventModel");
 const { sendBookingEmail, sendOtpEmail } = require("../utils/email");
 
@@ -121,7 +122,8 @@ const confirmBooking = async (req, res) => {
     // searching for booking with id
     const booking = await bookingModel
       .findById(req.params.id)
-      .populate("eventId");
+      .populate("eventId")
+      .populate("userId", "name email");
     if (!booking) {
       return res.status(400).json({
         success: false,
@@ -197,6 +199,29 @@ const getMyBooking = async (req, res) => {
   }
 };
 
+// get all bookings
+const getAllBookings = async (req, res) => {
+  console.log("req.user:", req.user);
+  try {
+    const bookings = await bookingModel
+      .find()
+      .populate("eventId")
+      .populate("userId", "name email"); // so admin can see user details
+
+    return res.status(200).json({
+      success: true,
+      booking: bookings,
+      message: "All bookings fetched successfully",
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).json({
+      success: false,
+      message: "Internal server error in get all bookings",
+    });
+  }
+};
+
 // you can cancel your booking
 const cancelBooking = async (req, res) => {
   try {
@@ -210,7 +235,10 @@ const cancelBooking = async (req, res) => {
     }
 
     // checking if the booking userid is same as req.user.id
-    if (booking.userId.toString() !== req.user._id.toString()) {
+    if (
+      booking.userId.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
       return res.status(400).json({
         success: false,
         message: "unauthorized",
@@ -260,4 +288,5 @@ module.exports = {
   getMyBooking,
   confirmBooking,
   cancelBooking,
+  getAllBookings,
 };

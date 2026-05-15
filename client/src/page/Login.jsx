@@ -20,11 +20,11 @@ const Login = () => {
     try {
       if (!showOTP) {
         const data = await login(email, password);
-        if (data.role === "admin") navigate("/admin");
+        if (data.user.role === "admin") navigate("/admin");
         else navigate("/dashboard");
       } else {
         const data = await verifyOTP(email, otp);
-        if (data.role === "admin") navigate("/admin");
+        if (data.user?.role === "admin") navigate("/admin");
         else navigate("/dashboard");
       }
     } catch (err) {
